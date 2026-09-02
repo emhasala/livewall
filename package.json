@@ -62,5 +62,13 @@
     "macos",
     "windows",
     "multi-monitor"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emhasala/live-wallpaper.git"
+  },
+  "homepage": "https://github.com/emhasala/live-wallpaper",
+  "bugs": {
+    "url": "https://github.com/emhasala/live-wallpaper/issues"
+  }
 }

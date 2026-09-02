@@ -1,70 +1,127 @@
 # LiveWall
 
-Live video and image wallpapers for **macOS and Windows**, with per-monitor control,
-a drag-to-arrange layout, and one wallpaper spanned across every display.
+Live wallpapers for macOS and Windows.
 
-![LiveWall](docs/screenshots/app.png)
+Plays video and images behind your desktop icons — a different one per monitor, or a
+single clip stretched across every screen. No kernel extensions, no compiled native
+addons, no ffmpeg to install.
 
-## Download
+[![Download for macOS](https://img.shields.io/badge/Download-macOS-000000?style=for-the-badge&logo=apple&logoColor=white)](../../releases/latest)
+[![Download for Windows](https://img.shields.io/badge/Download-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)](../../releases/latest)
 
-Grab the latest installer from the [**Releases page**](../../releases/latest):
+macOS 12 or later · Windows 10 and 11 · Apple Silicon and Intel · MIT
+
+[![LiveWall](docs/screenshots/app.png)](docs/screenshots/app.png)
+
+* * *
+
+## Download and run
+
+Grab the latest build from the [releases page](../../releases/latest):
 
 | Platform | File |
-|---|---|
-| macOS (Apple silicon & Intel) | `LiveWall-<version>-<arch>.dmg` |
-| Windows 10/11 | `LiveWall-Setup-<version>.exe` |
+| --- | --- |
+| macOS (Apple Silicon or Intel) | `LiveWall-<version>-<arch>.dmg` |
+| Windows 10 / 11 | `LiveWall-Setup-<version>.exe` |
 
-**macOS first launch.** The builds aren't code-signed (no paid Developer ID), so
-Gatekeeper will block the first open. Right-click the app ▸ **Open** ▸ **Open**, or:
+The builds are **not code-signed** — that needs a paid Apple Developer ID and a Windows
+certificate. So the first launch takes one extra step.
+
+On macOS, right-click the app ▸ **Open** ▸ **Open**, or clear the quarantine flag:
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/LiveWall.app
 ```
 
-**Windows first launch.** SmartScreen may warn about an unrecognised publisher —
-**More info** ▸ **Run anyway**.
+On Windows, SmartScreen will mention an unrecognised publisher — **More info** ▸
+**Run anyway**.
 
-LiveWall lives in the menu bar / system tray. Closing the window leaves your
-wallpapers running; quit from the tray menu.
+> LiveWall lives in the menu bar / system tray. Closing the window leaves your
+> wallpapers running; quit from the tray menu.
 
-## What it does
+* * *
 
-- **Video wallpapers** — MP4/WebM playing behind your desktop icons, looping forever.
-- **Image wallpapers** — JPEG, PNG, WebP, AVIF and animated GIF, treated exactly like
-  video: same fit, crop, spanning and per-monitor settings.
-- **Per-monitor assignment** — a different wallpaper on each screen, each with its own
-  fit, crop, brightness, speed and volume.
-- **Span across all displays** — one clip stretched over your whole desk, sliced per
-  monitor so the image lines up across the bezels.
-- **Drag to arrange** — position your monitors on a canvas to control how the spanned
-  image is divided. Edges snap magnetically.
-- **Fit, zoom and pan** — fill, fit, blur-fill or stretch, then zoom up to 4× and pan
-  to choose exactly which part of the image lands on which screen.
-- **Synced playback** — monitors showing the same clip stay frame-aligned.
-- **Hot-plug aware** — plug, unplug or rearrange monitors and it re-flows. Each screen
-  remembers its wallpaper across reconnects and reboots.
-- **Battery and fullscreen aware** — stops decoding when it shouldn't be burning power.
-- **Launch at login**, menu-bar/tray control, and a per-monitor **Identify** flash.
+## What it looks like
 
-### Arrange your displays, and slice one image across them
+Drag your monitors to match how they really sit on your desk, then drop a wallpaper
+onto them.
 
-![Arrange canvas](docs/screenshots/arrange.png)
+[![Arranging displays](docs/screenshots/arrange.png)](docs/screenshots/arrange.png)
 
-Drag a monitor to match how your screens really sit. This changes how the wallpaper is
-sliced — it never touches your system display arrangement, which stays the OS's to own.
+Dragging changes **how the wallpaper is sliced** — it never touches your system display
+arrangement, which stays the OS's to own. Edges snap magnetically, and **Reset layout**
+puts everything back where the OS says it is.
 
-### Per-display controls
+Each display gets its own fit, crop, brightness, speed and volume.
 
-<img src="docs/screenshots/inspector.png" width="330" alt="Inspector panel">
+[![Per-display controls](docs/screenshots/inspector.png)](docs/screenshots/inspector.png)
 
-### On the desktop
+* * *
 
-<img src="docs/screenshots/desktop.png" width="300" alt="A wallpaper slice on a portrait monitor">
+## Every display, including the awkward ones
 
-## Build from source
+The app reads what's actually attached rather than assuming a tidy row of identical
+monitors.
+
+| Setup | Behaviour |
+| --- | --- |
+| Mixed sizes and resolutions | Each window is built from that display's own bounds |
+| A portrait monitor | Handled like any other rectangle; aspect ratio is preserved per screen |
+| Retina next to non-Retina | Positions are computed in DIPs, so scaling doesn't skew the slice |
+| Monitors at negative coordinates | Normal — a secondary screen left of the primary is the common case |
+| Unplugged and replugged | Each screen is keyed on its identity, not its session ID, so it gets its wallpaper back |
+| One screen you'd rather leave alone | Turn it off; it drops out of the span and shows the system wallpaper |
+
+* * *
+
+## One wallpaper across every screen
+
+**Span across all** scales one source to cover the bounding box of every participating
+monitor, then gives each screen the rectangle that belongs to it — so the image lines
+up across the bezels instead of repeating.
+
+Monitors showing the same clip stay frame-aligned. The main process keeps one clock per
+clip and every two seconds tells each screen where it should be:
+
+- under 80 ms of drift — ignored
+- 80–350 ms — absorbed by playing very slightly fast or slow, which is invisible
+- over 350 ms — a hard seek, since something actually stalled
+
+Seeking is the last resort because it shows a visible hitch.
+
+* * *
+
+## Formats
+
+Playback goes through Chromium, so its codec support is the limit.
+
+| Kind | Safe choices | Accepted but flagged | Rejected at import |
+| --- | --- | --- | --- |
+| Video | H.264 MP4, VP8/VP9 WebM | `.mov`, `.mkv`, `.ogv` | `.avi`, `.wmv`, `.flv` |
+| Images | JPEG, PNG, WebP, AVIF, animated GIF | — | HEIC, HEIF, TIFF |
+
+`.mov` and `.mkv` are containers that often carry codecs Chromium can't decode. If a
+file does fail, the wallpaper renderer reports it back: the library tile gets a
+**Can't play** badge with the underlying error and falls back to the poster frame,
+rather than leaving a silent black screen.
+
+To convert:
 
 ```bash
-git clone <this repo>
+ffmpeg -i input.mov -c:v libx264 -crf 20 -pix_fmt yuv420p -an output.mp4
+```
+
+> Video decoding is not free. **Pause on battery** is on by default, and the tray menu
+> has a pause switch. A 4K clip across three monitors will be felt on a laptop.
+
+* * *
+
+## Building from source
+
+Node 20 or later.
+
+```bash
+git clone https://github.com/emhasala/live-wallpaper.git
 cd live-wallpaper
 npm install
 npm start
@@ -77,90 +134,69 @@ npm run dist:mac    # dmg + zip
 npm run dist:win    # nsis installer
 ```
 
-Publishing a release is automated — tag a version and CI builds and uploads both
-platforms:
+Releases are automated — tagging a version builds both platforms in CI and attaches the
+installers:
 
 ```bash
 npm version minor && git push --follow-tags
 ```
 
+* * *
+
 ## How it works
 
 ### Sitting behind your icons
 
-The only genuinely platform-specific part, and it needs no compiled addon on either OS:
+The only genuinely platform-specific part, and it needs nothing compiled on either OS.
 
 | | Mechanism |
-|---|---|
-| **macOS** | Electron's `BrowserWindow({ type: 'desktop' })` sits at the desktop window level, below the icon layer. `setVisibleOnAllWorkspaces` makes it follow you across Spaces. |
-| **Windows** | Send the undocumented `0x052C` message to `Progman` to spawn a `WorkerW`, find the one that isn't the icon host, and `SetParent` our window into it. Undocumented but stable since Windows 7. Called through `koffi` FFI — prebuilt binaries, no node-gyp. |
+| --- | --- |
+| **macOS** | `BrowserWindow({ type: 'desktop' })` sits at the desktop window level, below the icon layer. `setVisibleOnAllWorkspaces` makes it follow you across Spaces. |
+| **Windows** | Send the undocumented `0x052C` message to `Progman` to spawn a `WorkerW`, find the one that isn't the icon host, and `SetParent` into it. Undocumented but stable since Windows 7, and reached through `koffi` FFI — prebuilt binaries, no node-gyp. |
 
-If the Windows `WorkerW` lookup fails the window stays at normal level rather than
-disappearing, and the reason is logged. Explorer drops `WorkerW`'s children whenever it
+If the Windows `WorkerW` lookup fails, the window stays at its normal level rather than
+vanishing, and the reason is logged. Explorer drops `WorkerW`'s children whenever it
 rebuilds the desktop, so a slow timer re-parents them.
 
 ### Serving the media
 
-Media is served over a private `livewall://` scheme, not `file://`. This is not
+Media is served over a private `livewall://` scheme rather than `file://`. This is not
 cosmetic: **Chromium refuses to load a `file://` URL into a `<video>`** — *"Media load
 rejected by URL safety check"* — even from a `file://` page. `<img>` is allowed, which
-makes the failure especially confusing: images work and every video is a black screen.
+makes the failure especially confusing, because images work and every video is a black
+screen.
 
 The scheme is registered as `standard`, `secure` and `stream`, and the handler answers
-HTTP Range requests, so seeking and looping on a large file don't re-read it from the
-start.
+HTTP Range requests, so seeking and looping a large file don't re-read it from the top.
 
 ### Placement
 
 `src/shared/layout.js` is the single source of truth for where a source sits on a
-screen, used by the wallpaper renderer (positions the real element), the arrange-canvas
-preview (positions a background-image), and the tests — so the preview can't drift from
-what lands on the desktop.
+screen. The wallpaper renderer positions the real element with it, the arrange canvas
+positions a background-image with it, and the tests check it — so the preview can't
+drift from what lands on the desktop.
 
 One model covers both layouts. A *view* is the canvas being filled plus this screen's
 window onto it: for a per-display wallpaper the view is the display; for a spanned one
 it's the whole multi-monitor bounding box with this display offset into it. Fit, zoom
-and pan then apply identically to both. Pan is stored as a fraction of whatever is
-currently cropped off rather than raw pixels, so ±1 are exactly the limits of what can
-be revealed and the control can never push the image off its own screen, whatever the
-aspect ratio.
+and pan then apply identically to both.
+
+Pan is stored as a fraction of whatever is currently cropped off rather than as pixels,
+so ±1 are exactly the limits of what can be revealed and the slider can never push the
+image off its own screen, whatever the aspect ratio.
 
 Nothing uses `object-fit`; a second opinion about placement is a bug waiting to happen.
 
-### Playback sync
-
-The main process keeps one clock per clip. Every two seconds each wallpaper renderer is
-told where it should be and corrects itself:
-
-- drift under 80 ms — ignored
-- 80–350 ms — absorbed by running slightly fast or slow, which is invisible
-- over 350 ms — a hard seek, since something actually stalled
-
-Seeking is the last resort because it shows a visible hitch.
-
 ### Pausing
 
-`paused` in the config is the user's own choice and persists. Automatic pausing
-(battery, fullscreen) is deliberately kept in memory only. Sharing one stored flag
-between the two means unplugging the charger once leaves the wallpapers paused forever —
-the "resume on AC" branch never fires again after a restart, because the in-memory "we
-paused this automatically" flag is gone.
+`paused` in the config is your own choice and persists. Automatic pausing — battery,
+fullscreen — is deliberately kept in memory only.
 
-## Formats
+*Why:* sharing one stored flag between the two means unplugging the charger once leaves
+the wallpapers paused forever. After a restart the in-memory "we paused this
+automatically" flag is gone, so the "resume on AC" branch never fires again.
 
-Playback goes through Chromium, so **H.264 MP4 and VP8/VP9 WebM are the safe choices**
-for video; JPEG, PNG, GIF, WebP and AVIF all work for stills. `.mov`, `.mkv` and `.ogv`
-are accepted but flagged in the library — they're containers that often carry codecs
-Chromium can't decode. HEIC/HEIF and TIFF are rejected at import with a message rather
-than silently showing black.
-
-If a file does fail to decode, the wallpaper renderer reports it back: the library tile
-gets a "Can't play" badge with the underlying error, and the wallpaper falls back to the
-poster frame. To convert:
-
-```bash
-ffmpeg -i input.mov -c:v libx264 -crf 20 -pix_fmt yuv420p -an output.mp4
-```
+* * *
 
 ## Layout
 
@@ -174,9 +210,9 @@ src/
     sync.js              shared playback clock
     store.js             config persistence
     media.js             import, thumbnails, library
-    displays.js          monitor identity (stable across replug)
+    displays.js          monitor identity, stable across replug
     platform/            mac.js · win.js — the desktop-level trick
-  shared/layout.js       fit/zoom/pan/span geometry, shared with renderers and tests
+  shared/layout.js       fit / zoom / pan / span geometry
   preload/               contextBridge surfaces
   renderer/
     wallpaper/           what each monitor shows
@@ -184,9 +220,11 @@ src/
 scripts/                 asset + sample generation, tests
 ```
 
-Config and imported media live in Electron's `userData` directory
-(`~/Library/Application Support/LiveWall` on macOS, `%APPDATA%\LiveWall` on Windows).
-"Show files" in the app opens it.
+Config and imported media live in Electron's `userData` directory —
+`~/Library/Application Support/LiveWall` on macOS, `%APPDATA%\LiveWall` on Windows.
+**Show files** in the app opens it.
+
+* * *
 
 ## Tests
 
@@ -194,14 +232,16 @@ Config and imported media live in Electron's `userData` directory
 npm test
 ```
 
-Syntax-checks every source file (renderer mistakes otherwise show up only as a blank
-window), round-trips the GIF LZW encoder against a decoder, and checks placement — that
-neighbouring monitors show adjacent non-overlapping crops (no seam at the bezel), that
-aspect ratio is preserved on every screen, that zoom and pan keep those seams intact,
-that pan stays clamped to the visible overflow at every offset, and that negative
-display origins and user arrangements slice correctly.
+Syntax-checks every source file, because a mistake in a renderer otherwise shows up
+only as a blank window. Round-trips the GIF encoder against a decoder. Then checks
+placement: that neighbouring monitors show adjacent, non-overlapping crops with no seam
+at the bezel, that aspect ratio is preserved on every screen, that zoom and pan keep
+those seams intact, that pan stays clamped to the visible overflow at every offset, and
+that negative display origins and hand-arranged layouts slice correctly.
 
-The suite is pure Node and needs no Electron binary, so CI runs in seconds.
+The suite is pure Node and needs no Electron binary, so CI finishes in seconds.
+
+* * *
 
 ## Known gaps
 
@@ -210,11 +250,18 @@ The suite is pure Node and needs no Electron binary, so CI runs in seconds.
   window is already occluded and throttled by the OS in that case, so nothing is faked.
 - **No transcoding.** Files are copied as-is; there's no bundled ffmpeg. Formats
   Chromium can't decode are reported rather than converted.
-- **Builds are unsigned.** Signing needs a paid Apple Developer ID and a Windows code
-  signing certificate.
-- **Audio is off by default** and per-display. Unmuting several monitors playing the
+- **Builds are unsigned.** See [Download and run](#download-and-run).
+- **Audio is off by default**, and per display. Unmuting several monitors playing the
   same clip will phase against each other.
 
-## License
+* * *
+
+## Licence
 
 MIT — see [LICENSE](LICENSE).
+
+## About
+
+Built with Electron. The desktop-level window trick is the same one every wallpaper app
+on each platform relies on; everything above it is ordinary web rendering, which is why
+a video, an animated GIF and a still photo all behave identically.
