@@ -18,8 +18,10 @@ jobs:
         include:
           - os: macos-latest
             target: --mac
+            artifacts: dist/*.dmg dist/*.zip
           - os: windows-latest
             target: --win
+            artifacts: dist/*.exe
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -29,10 +31,19 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - name: Build and publish
-        run: npx electron-builder ${{ matrix.target }} --publish always
+
+      - name: Build installer
+        # Built unsigned: no Developer ID / code-signing certificate in CI. Users get
+        # a Gatekeeper / SmartScreen prompt on first launch; the README explains it.
+        # Uploading is left to the step below rather than electron-builder's own
+        # publisher, which needs provider config this repo deliberately doesn't carry.
+        run: npx electron-builder ${{ matrix.target }} --publish never
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Unsigned builds: there's no Developer ID certificate in CI. Users get a
-          # Gatekeeper prompt on first launch — the README explains how to open it.
           CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Attach to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifacts }}
+          draft: false
+          generate_release_notes: true
