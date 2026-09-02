@@ -18,10 +18,15 @@ jobs:
         include:
           - os: macos-latest
             target: --mac
-            artifacts: dist/*.dmg dist/*.zip
+            # Newline-delimited: the upload action treats a space-separated string
+            # as a single glob, which silently matches nothing and uploads no assets.
+            artifacts: |
+              dist/*.dmg
+              dist/*.zip
           - os: windows-latest
             target: --win
-            artifacts: dist/*.exe
+            artifacts: |
+              dist/*.exe
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
