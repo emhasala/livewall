@@ -1,0 +1,16 @@
+<meta charset="utf-8" />
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src livewall: data:; media-src livewall: data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' file:; font-src 'self';" />
+<title>LiveWall</title>
+<link rel="stylesheet" href="wallpaper.css" />
+<div id="stage">
+  <div class="backdrop" id="backdrop"></div>
+  <video class="layer" id="layerA" playsinline preload="auto"></video>
+  <video class="layer" id="layerB" playsinline preload="auto"></video>
+  <img class="layer still" id="stillA" alt="" />
+  <img class="layer still" id="stillB" alt="" />
+  <div class="shade" id="shade"></div>
+</div>
+<div id="identify" hidden><span id="identifyLabel"></span></div>
+<script src="../../shared/layout.js"></script>
+<script src="wallpaper.js"></script>

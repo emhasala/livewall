@@ -1,0 +1,71 @@
+{
+  "name": "livewall",
+  "productName": "LiveWall",
+  "version": "0.1.0",
+  "description": "Live video wallpapers with per-monitor control and synced playback (macOS + Windows)",
+  "license": "MIT",
+  "main": "src/main/index.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "gen:assets": "node scripts/gen-assets.js",
+    "check": "node scripts/check.js",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "test": "node scripts/check.js && node scripts/test-gif.js && node scripts/test-layout.js"
+  },
+  "dependencies": {
+    "koffi": "^2.9.0"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.livewall.app",
+    "productName": "LiveWall",
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "icon": "assets/icon.png",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "extendInfo": {
+        "LSUIElement": false
+      },
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "win": {
+      "icon": "assets/icon.png",
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "publish": [
+      {
+        "provider": "github"
+      }
+    ]
+  },
+  "author": "hasala",
+  "keywords": [
+    "wallpaper",
+    "live-wallpaper",
+    "video-wallpaper",
+    "electron",
+    "macos",
+    "windows",
+    "multi-monitor"
+  ]
+}

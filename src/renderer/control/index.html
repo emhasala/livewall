@@ -1,0 +1,53 @@
+<meta charset="utf-8" />
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src livewall: data: blob:; media-src livewall: data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' file:; font-src 'self';" />
+<title>LiveWall</title>
+<link rel="stylesheet" href="styles.css" />
+
+<header class="titlebar">
+  <div class="brand">
+    <span class="dot"></span>
+    <strong>LiveWall</strong>
+    <span class="sub" id="statusLine">Loading…</span>
+  </div>
+  <div class="controls">
+    <button class="btn" id="identifyBtn" title="Flash each monitor's name on screen">Identify</button>
+    <button class="btn" id="muteBtn">Mute</button>
+    <button class="btn primary" id="pauseBtn">Pause</button>
+  </div>
+</header>
+
+<main>
+  <section class="panel displays">
+    <div class="panel-head">
+      <h2>Displays</h2>
+      <div class="row-actions">
+        <div class="segmented tiny" id="modeSwitch">
+          <button data-mode="per">Per display</button>
+          <button data-mode="span">Span across all</button>
+        </div>
+        <button class="btn small" id="resetLayoutBtn">Reset layout</button>
+      </div>
+    </div>
+    <div class="arrange" id="arrange"></div>
+    <p class="hint" id="arrangeHint"></p>
+  </section>
+
+  <section class="panel library">
+    <div class="panel-head">
+      <h2>Library</h2>
+      <div class="row-actions">
+        <button class="btn small" id="folderBtn">Show files</button>
+        <button class="btn small primary" id="addBtn">Add media…</button>
+      </div>
+    </div>
+    <div class="grid" id="libraryGrid"></div>
+    <div class="dropzone" id="dropzone">Drop videos or images anywhere to add them</div>
+  </section>
+</main>
+
+<aside class="inspector" id="inspector"></aside>
+
+<div class="toast-stack" id="toasts"></div>
+<script src="../../shared/layout.js"></script>
+<script src="app.js"></script>

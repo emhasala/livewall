@@ -1,0 +1,65 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  cursor: none;
+  user-select: none;
+}
+
+#stage { position: fixed; inset: 0; overflow: hidden; }
+
+/* Blurred, scaled copy of the poster frame fills the letterbox in "blur" fit mode. */
+.backdrop {
+  position: absolute;
+  inset: -6%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(48px) saturate(1.35);
+  transform: scale(1.15);
+  opacity: 0;
+  transition: opacity 400ms ease;
+}
+.backdrop.on { opacity: 1; }
+
+/* Layers are sized and positioned entirely from shared/layout.js — fit, zoom, pan
+   and multi-monitor spanning are one calculation, so object-fit would only be a
+   second, conflicting opinion. The element is always exactly the right size. */
+.layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  object-fit: fill;
+  max-width: none;
+  transition: opacity 600ms ease;
+  will-change: opacity;
+}
+.layer.on { opacity: 1; }
+
+/* Brightness is a black scrim rather than a CSS filter: compositing one flat layer
+   is far cheaper per frame than re-filtering every decoded video frame. */
+.shade {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  transition: opacity 250ms ease;
+  pointer-events: none;
+}
+
+#identify {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  font: 600 clamp(48px, 9vw, 180px)/1.1 -apple-system, "Segoe UI", system-ui, sans-serif;
+  color: #fff;
+  text-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+  animation: pop 240ms ease;
+}
+#identify[hidden] { display: none; }
+@keyframes pop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
