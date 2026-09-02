@@ -21,7 +21,8 @@ Grab the latest build from the [releases page](../../releases/latest):
 
 | Platform | File |
 | --- | --- |
-| macOS (Apple Silicon or Intel) | `LiveWall-<version>-<arch>.dmg` |
+| macOS · Apple Silicon | `LiveWall-<version>-arm64.dmg` |
+| macOS · Intel | `LiveWall-<version>-x64.dmg` |
 | Windows 10 / 11 | `LiveWall-Setup-<version>.exe` |
 
 The builds are **not code-signed** — that needs a paid Apple Developer ID and a Windows
