@@ -121,8 +121,8 @@ ffmpeg -i input.mov -c:v libx264 -crf 20 -pix_fmt yuv420p -an output.mp4
 Node 20 or later.
 
 ```bash
-git clone https://github.com/emhasala/live-wallpaper.git
-cd live-wallpaper
+git clone https://github.com/emhasala/livewall.git
+cd livewall
 npm install
 npm start
 ```

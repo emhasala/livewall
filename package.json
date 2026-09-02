@@ -2,7 +2,7 @@
   "name": "livewall",
   "productName": "LiveWall",
   "version": "0.1.0",
-  "description": "Live video wallpapers with per-monitor control and synced playback (macOS + Windows)",
+  "description": "Live video and image wallpapers for macOS and Windows, with per-monitor control and one wallpaper spanned across every display",
   "license": "MIT",
   "main": "src/main/index.js",
   "scripts": {
@@ -58,17 +58,22 @@
     "wallpaper",
     "live-wallpaper",
     "video-wallpaper",
+    "animated-wallpaper",
+    "dynamic-wallpaper",
+    "desktop",
     "electron",
     "macos",
     "windows",
-    "multi-monitor"
+    "multi-monitor",
+    "cross-platform",
+    "desktop-customization"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/emhasala/live-wallpaper.git"
+    "url": "https://github.com/emhasala/livewall.git"
   },
-  "homepage": "https://github.com/emhasala/live-wallpaper",
+  "homepage": "https://github.com/emhasala/livewall",
   "bugs": {
-    "url": "https://github.com/emhasala/live-wallpaper/issues"
+    "url": "https://github.com/emhasala/livewall/issues"
   }
 }
